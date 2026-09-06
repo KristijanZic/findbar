@@ -71,8 +71,13 @@ in
       fi
 
       if [ -n "$TARGET_USER" ] && [ "$TARGET_USER" != "root" ]; then
-        USER_HOME="$(eval echo "~$TARGET_USER")"
-        sudo -u "$TARGET_USER" -H HOME="$USER_HOME" ${cfg.package}/bin/findbar sync "${configJson}"
+        TARGET_UID="$(id -u "$TARGET_USER" 2>/dev/null || true)"
+        if [ -n "$TARGET_UID" ]; then
+          echo "findbar: syncing Finder sidebar favorites for user '$TARGET_USER' (UID $TARGET_UID)..."
+          /bin/launchctl asuser "$TARGET_UID" sudo -u "$TARGET_USER" -H ${cfg.package}/bin/findbar sync "${configJson}"
+        else
+          echo "findbar: unable to determine UID for user '$TARGET_USER'. Skipping."
+        fi
       else
         echo "findbar: unable to determine target user for Finder sidebar sync. Skipping."
       fi
