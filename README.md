@@ -128,6 +128,7 @@ Add `findbar` to your `flake.nix` inputs:
         {
           programs.findbar = {
             enable = true;
+            # user = "myuser"; # Optional: defaults to system.primaryUser or the active user
             # keepUnmanaged = false; # Set to true to retain manual unmanaged items
             items = [
               # Omitting 'name' allows macOS to localize system folders automatically

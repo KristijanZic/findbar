@@ -19,6 +19,13 @@ in
       description = "The findbar package to use.";
     };
 
+    user = mkOption {
+      type = types.nullOr types.str;
+      default = config.system.primaryUser or null;
+      description = "The macOS user account to configure Finder sidebar favorites for. Defaults to system.primaryUser if defined, or automatically detects the active console/sudo user.";
+      example = "myuser";
+    };
+
     keepUnmanaged = mkOption {
       type = types.bool;
       default = false;
@@ -52,9 +59,23 @@ in
   config = mkIf cfg.enable {
     environment.systemPackages = [ cfg.package ];
 
-    system.activationScripts.postUserActivation.text = ''
+    system.activationScripts.findbar.text = ''
       echo "Configuring Finder sidebar with findbar..."
-      ${cfg.package}/bin/findbar sync "${configJson}"
+      TARGET_USER="${if cfg.user != null then cfg.user else ""}"
+      if [ -z "$TARGET_USER" ]; then
+        if [ -n "$SUDO_USER" ] && [ "$SUDO_USER" != "root" ]; then
+          TARGET_USER="$SUDO_USER"
+        else
+          TARGET_USER="$(/usr/bin/stat -f '%Su' /dev/console 2>/dev/null || true)"
+        fi
+      fi
+
+      if [ -n "$TARGET_USER" ] && [ "$TARGET_USER" != "root" ]; then
+        USER_HOME="$(eval echo "~$TARGET_USER")"
+        sudo -u "$TARGET_USER" -H HOME="$USER_HOME" ${cfg.package}/bin/findbar sync "${configJson}"
+      else
+        echo "findbar: unable to determine target user for Finder sidebar sync. Skipping."
+      fi
     '';
   };
 }
