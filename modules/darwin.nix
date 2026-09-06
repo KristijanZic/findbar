@@ -59,7 +59,7 @@ in
   config = mkIf cfg.enable {
     environment.systemPackages = [ cfg.package ];
 
-    system.activationScripts.findbar.text = ''
+    system.activationScripts.postActivation.text = ''
       echo "Configuring Finder sidebar with findbar..."
       TARGET_USER="${if cfg.user != null then cfg.user else ""}"
       if [ -z "$TARGET_USER" ]; then
