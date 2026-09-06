@@ -192,3 +192,5 @@ nix flake check
 ```
 
 ## License
+
+GPL-3.0-or-later
